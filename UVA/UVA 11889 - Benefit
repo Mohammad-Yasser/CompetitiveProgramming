@@ -45,7 +45,7 @@ int main() {
 		for (auto &x : cPrimeFactors)
 			if (x.second > aPrimeFactors[x.first])
 				b *= round(pow(x.first, x.second));
-		if (!(c % a))
+		if (c % a)
 			cout << "NO SOLUTION\n";
 		else
 			cout << b << '\n';

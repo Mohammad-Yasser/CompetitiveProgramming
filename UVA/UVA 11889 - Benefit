@@ -27,8 +27,8 @@ int main() {
 	 * So we can simply prime factorize both a and c and if count of prime factor [i] in c is greater
 	 * than that of a, so it must be the count of prime factor [i] in b.
 	 *
-	 * If count of prime factor [i] in c is less that that in a, then of course there's no solution,
-	 * because that means that c isn't divisible by a.
+	 *
+	 *	Of course if c isn't divisible by a, there's no solution.
 	 *
 	 *
 	 * DONE :D
@@ -42,16 +42,13 @@ int main() {
 		b = 1;
 		map<int, int> aPrimeFactors, cPrimeFactors;
 		primeFactorization(a, aPrimeFactors), primeFactorization(c, cPrimeFactors);
-		for (auto &x : aPrimeFactors)
-			if (cPrimeFactors[x.first] < x.second) {
-				cout << "NO SOLUTION\n";
-				goto r;
-			}
 		for (auto &x : cPrimeFactors)
 			if (x.second > aPrimeFactors[x.first])
 				b *= round(pow(x.first, x.second));
-		cout << b << '\n';
-		r: ;
+		if (!(c % a))
+			cout << "NO SOLUTION\n";
+		else
+			cout << b << '\n';
 	}
 
 }

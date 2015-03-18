@@ -1,0 +1,57 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+void primeFactorization(int n, map<int, int> &primeFactors) {
+	for (int i = 2; i <= n / i; ++i)
+		while (!(n % i))
+			n /= i, primeFactors[i]++;
+	if (n - 1)
+		primeFactors[n]++;
+}
+
+int main() {
+	ios_base::sync_with_stdio(0), cin.tie(0), cout.tie(0);
+	/*
+	 * Proof:
+	 *
+	 * If LCM(a,b) = c , that means that the count of prime factor [i] of c =
+	 * maximum between count of prime factor [i] of a and that of b.
+	 *
+	 * That's because the LCM is the least number divisible by both a and b, and since it
+	 * is divisible by a the count of each of its prime factors must be at least equal
+	 * to that of a , and the same for b. So for each prime factor of c its count must be at least
+	 * equal to that of a and at least equal to that of b and since it is the least number divisible
+	 * by both a and b, hence it the count of each of its prime factors shouldn't be greater than
+	 * that of the maximum count of this prime factor between a and b.
+	 *
+	 * So we can simply prime factorize both a and c and if count of prime factor [i] in c is greater
+	 * than that of a, so it must be the count of prime factor [i] in b.
+	 *
+	 * If count of prime factor [i] in c is less that that in a, then of course there's no solution,
+	 * because that means that c isn't divisible by a.
+	 *
+	 *
+	 * DONE :D
+	 *
+	 * If you have any comments, please send me :D
+	 *
+	 */
+	int a, b, c;
+	cin >> a;
+	while (cin >> a >> c) {
+		b = 1;
+		map<int, int> aPrimeFactors, cPrimeFactors;
+		primeFactorization(a, aPrimeFactors), primeFactorization(c, cPrimeFactors);
+		for (auto &x : aPrimeFactors)
+			if (cPrimeFactors[x.first] < x.second) {
+				cout << "NO SOLUTION\n";
+				goto r;
+			}
+		for (auto &x : cPrimeFactors)
+			if (x.second > aPrimeFactors[x.first])
+				b *= round(pow(x.first, x.second));
+		cout << b << '\n';
+		r: ;
+	}
+
+}

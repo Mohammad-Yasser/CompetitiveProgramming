@@ -6,7 +6,7 @@ typedef long long ll;
 /*
  *
  * Idea:
- * Let x is a number between k / div and k / (div +1), then k / x == div. --> (1)
+ * Let x be a number between k / div and k / (div +1), then k / x == div. --> (1)
  * Let's recall the equation of the % operator: x % y = x - y * x / y ; --> (2)
  * Let x and (x + 1) be between k / div and k / (div +1) , then from (1) and (2):
  * 	k % x == k - x * k / x == k - x * div,

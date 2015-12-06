@@ -6,7 +6,7 @@ typedef long long ll;
 /*
  *
  * Idea:
- * Let x be a number between k / div and k / (div +1), then k / x == div. --> (1)
+ * Let x is a number between k / div and k / (div +1), then k / x == div. --> (1)
  * Let's recall the equation of the % operator: x % y = x - y * x / y ; --> (2)
  * Let x and (x + 1) be between k / div and k / (div +1) , then from (1) and (2):
  * 	k % x == k - x * k / x == k - x * div,
@@ -23,12 +23,11 @@ typedef long long ll;
  *
  */
 
-ll solve(int n, int k) {
+ll solve(const int n, int k) {
 	ll ans = max(1LL * k * (n - k), 0LL);
 	int div = max(1, k / n);
 	while (1LL * div * div < k) {
 		int startingTerm = min(k / div, n);
-		if (!startingTerm) return 0;
 		int nTerms = startingTerm - k / (div + 1);
 		ans += 1LL * nTerms * (2 * (k % startingTerm) + (nTerms - 1) * div) / 2;
 		++div;
@@ -43,7 +42,6 @@ ll solve(int n, int k) {
 
 int main() {
 	ios_base::sync_with_stdio(0), cin.tie(0), cout.tie(0);
-
 	int n, k;
 	while (cin >> n >> k)
 		cout << solve(n, k) << '\n';

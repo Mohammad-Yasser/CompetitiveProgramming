@@ -60,7 +60,7 @@ struct Edge {
 	}
 };
 int edgeCnt, nodeCnt;
-const int SZ = 100005;
+const int SZ = 20004;
 Edge edges[SZ];
 int kruskal(vector<Edge>& res) {
 	res.clear();

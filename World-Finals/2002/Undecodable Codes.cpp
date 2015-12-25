@@ -6,7 +6,6 @@ typedef long long ll;
 
 string codeword[21];
 
-
 struct Node {
 	string s, total;
 	bool operator <(const Node &other) const {
@@ -28,7 +27,7 @@ string dijkstra() {
 	nodes.clear();
 	for (int i = 0; i < m; ++i)
 		for (int j = !i; j < m; ++j, j += (i == j))
-			if (prefix[i].count(codeword[j])) {
+			if (pre(codeword[i], codeword[j])) {
 				string tmp = codeword[i].substr(sz(codeword[j]));
 				Node nt = { tmp, codeword[i] };
 				if (!nodes.count(tmp) or nodes[tmp] < nt)
@@ -74,9 +73,9 @@ int main() {
 	int cs = 0;
 
 	while (cin >> m, m) {
-		for (int i = 0; i < m; ++i) 
+		for (int i = 0; i < m; ++i)
 			cin >> codeword[i];
-		
+
 		string res = dijkstra();
 
 		cout << "Code " << ++cs << ": " << sz(res) << " bits\n";

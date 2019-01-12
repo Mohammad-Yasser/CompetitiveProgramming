@@ -1,121 +1,91 @@
 #include <bits/stdc++.h>
-#include <ext/pb_ds/assoc_container.hpp>
-using namespace __gnu_pbds;
 using namespace std;
 #define popCnt(x) (__builtin_popcountll(x))
 typedef long long Long;
-// Playing around
-const int N = 2e5 + 10;
-int n, ans, ar[N], par[N], mark[N];
+typedef unsigned long long ULong;
+
+const int N = 2e5 + 5;
+
+vector<int> prime_factors[N];
+
+vector<int> getPrimeFactors(int x) {
+  vector<int> res;
+  for (int i = 2; i * i <= x; ++i) {
+    if (x % i == 0) {
+      res.push_back(i);
+    }
+    while (x % i == 0) {
+      x /= i;
+    }
+  }
+  if (x != 1) {
+    res.push_back(x);
+  }
+  return res;
+}
+
+void build() {
+  for (int i = 2; i < N; ++i) {
+    prime_factors[i] = getPrimeFactors(i);
+  }
+}
+
+int res = 0;
 vector<int> adj[N];
-vector<int> st[N];
-gp_hash_table<int, int> down[N], up[N];
+int val[N];
 
-void solve(int indx) {
-  for (int i = 1; i * i <= ar[indx]; i++)
-    if (ar[indx] % i == 0) {
-      if (i > 1 && !mark[i]) st[indx].push_back(i);
-      if (ar[indx] / i > 1 && i * i != ar[indx] && !mark[ar[indx] / i])
-        st[indx].push_back(ar[indx] / i);
-    }
-}
+vector<pair<int, int>> dfs(int node, int par) {
+  map<int, vector<int>> mp;
 
-void make_par(int v, int p = 0) {
-  par[v] = p;
-  for (int i : adj[v])
-    if (i != p) make_par(i, v);
-}
-
-void make_down(int v) {
-  for (int i : st[v])
-    down[v][i] = max(down[v][i], 1);
-
-  for (int i : adj[v]) {
-    if (i == par[v]) continue;
-
-    make_down(i);
-
-    for (int j : st[v]) {
-      if (down[i].find(j) != down[i].end())
-        down[v][j] = max(down[v][j], down[i][j] + 1);
-    }
-  }
-}
-
-void make_up(int v) {
-  for (int i : st[v])
-    up[v][i] = max(up[v][i], 1);
-
-  if (!v) {
-    for (int i : adj[v])
-      make_up(i);
-    return;
+  for (auto& x : prime_factors[val[node]]) {
+    mp[x].push_back(0);
+    res = max(res, 1);
   }
 
-  for (int j : st[v]) {
-    if (up[par[v]].find(j) != up[par[v]].end()) up[v][j] = up[par[v]][j] + 1;
-    if (up[par[v]].find(j) == up[par[v]].end()) continue;
-
-    for (int i : adj[par[v]]) {
-      if (i == v || i == par[par[v]]) continue;
-
-      if (down[i].find(j) != down[i].end())
-        up[v][j] = max(up[v][j], down[i][j] + 2);
-    }
-  }
-
-  for (int i : adj[v])
-    if (i != par[v]) make_up(i);
-}
-
-int main() {
-  ios::sync_with_stdio(0);
-  cin.tie(0);
-
-
-  mark[1] = 1;
-  for (int i = 2; i < N; i++)
-    if (!mark[i]) for (int j = 2 * i; j < N; j += i)
-      mark[j] = 1;
-
-  cin >> n;
-  for (int i = 0; i < n; i++)
-    cin >> ar[i], solve(i);
-  for (int i = 1; i < n; i++) {
-    int v, u;
-    cin >> v >> u;
-    v--;
-    u--;
-    adj[v].push_back(u);
-    adj[u].push_back(v);
-  }
-
-  make_par(0);
-  make_down(0);
-  make_up(0);
-
-  for (int i = 0; i < n; i++) {
-    for (int j : st[i]) {
-      ans = max(ans, down[i][j] + up[i][j] - 1);
-
-      if ((adj[i].size() > 2) || (!i && adj[i].size())) {
-        int mx1 = 0, mx2 = 0;
-        for (int u : adj[i]) {
-          if (u == par[i]) continue;
-
-          if (down[u].find(j) != down[u].end()) {
-            int tmp = down[u][j];
-            if (tmp > mx1) {
-              swap(mx1, mx2);
-              mx1 = tmp;
-            } else if (tmp > mx2) mx2 = tmp;
-          }
-        }
-
-        ans = max(ans, mx1 + mx2 + 1);
+  for (int v : adj[node]) {
+    if (v == par) continue;
+    auto tmp = dfs(v, node);
+    for (auto& pr : tmp) {
+      if (mp.count(pr.first)) {
+        mp[pr.first].push_back(pr.second);
       }
     }
   }
 
-  cout << ans;
+  vector<pair<int, int>> vec;
+  for (auto& pr : mp) {
+    sort(pr.second.rbegin(), pr.second.rend());
+    if (pr.second.size() > 1) {
+      res = max(res, pr.second[0] + pr.second[1] + 1);
+    }
+    vec.emplace_back(pr.first, pr.second[0] + 1);
+  }
+  return vec;
+}
+
+int main() {
+  ios_base::sync_with_stdio(0), cin.tie(0), cout.tie(0);
+#ifdef Local
+  freopen("test.in", "r", stdin);
+#else
+#define endl '\n'
+#endif
+
+  build();
+  int n;
+  cin >> n;
+
+  for (int i = 1; i <= n; ++i) {
+    cin >> val[i];
+  }
+
+  for (int i = 1; i < n; ++i) {
+    int x, y;
+    cin >> x >> y;
+    adj[x].push_back(y);
+    adj[y].push_back(x);
+  }
+
+  dfs(1, -1);
+  cout << res << endl;
 }

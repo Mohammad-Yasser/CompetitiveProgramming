@@ -1,11 +1,12 @@
 #include <bits/stdc++.h>
 #include <ext/pb_ds/assoc_container.hpp>
 using namespace __gnu_pbds;
-gp_hash_table<int, int> table;
 using namespace std;
 #define popCnt(x) (__builtin_popcountll(x))
 typedef long long Long;
 typedef unsigned long long ULong;
+
+// https://codeforces.com/blog/entry/62602
 
 const int N = 1e5;
 

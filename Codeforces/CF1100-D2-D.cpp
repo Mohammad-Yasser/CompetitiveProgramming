@@ -18,7 +18,7 @@ void readUpdate() {
   cin >> k >> x >> y;
   if (k == -1) exit(0);
   --k;
-  occupied[rooks[k][0]][rooks[k][0]] = false;
+  occupied[rooks[k][0]][rooks[k][1]] = false;
   rooks[k] = Pos( { x, y });
   occupied[x][y] = true;
 }

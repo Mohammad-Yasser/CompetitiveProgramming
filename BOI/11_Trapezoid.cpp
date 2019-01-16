@@ -7,6 +7,13 @@ typedef unsigned long long ULong;
 constexpr int N = 2e5 + 5;
 const int MOD = 30013;
  
+// 2 trapezoids (i.j) don't intersect iff ((i.b < j.a && i.d < j.c) or (j.b < i.a && j.d < i.c))
+// I sort the trapezoids on c. Then I keep in a segment tree for each x what's the maximum number of non-intersecting
+// trapezoids whose b <= x. For each trapezoid, I get the maximum number of non-intersecting trapezoids whose b < its a.
+// But how to make sure that also these trapezoids' d are less than its c?
+// Well, I delay each update for the segment tree, till the d of the trapezoid causing this update is less than the current 
+// trapezoid's c.
+
 struct Node {
   int start, end; // The node covers the range [start,end].
  

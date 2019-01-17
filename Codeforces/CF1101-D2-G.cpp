@@ -4,7 +4,7 @@ using namespace std;
 typedef long long Long;
 typedef unsigned long long ULong;
 
-// Disclaimer: I've no idea why this works.
+// Disclaimer: I've no idea why this works. https://codeforces.com/blog/entry/64438?#comment-483970
 
 const int N = 2e5 + 5;
 int arr[N];

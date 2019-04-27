@@ -22,7 +22,7 @@ void build() {
     int nxt_k = -1;
     for (int k : ks) {
       if (x - nxt_x >= k) break;
-      if (cost[nxt_x] == cost[max(0, x - k + 1)]) break;
+      if (nxt_x != x && cost[nxt_x] <= cost[max(0, x - k + 1)]) break;
       if (x / k * k < nxt_x) {
         nxt_x = x / k * k;
         nxt_k = k;

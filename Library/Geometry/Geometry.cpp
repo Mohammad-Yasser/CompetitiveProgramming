@@ -3,6 +3,10 @@ typedef long double Double;
 
 const Double EPS = 1e-10;
 
+enum Relation {
+  LESS_THAN, EQUAL, GREATER_THAN
+};
+
 bool areEqual(Double x, Double y, Double eps = EPS) {
   auto diff = abs(x - y);
   x = abs(x), y = abs(y);
@@ -16,9 +20,9 @@ bool isZero(Double x, Double eps = EPS) {
 }
 
 int compareDoubles(Double x, Double y, Double eps = EPS) {
-  if (areEqual(x, y, eps)) return 0;
-  if (x < y) return -1;
-  return 1;
+  if (areEqual(x, y, eps)) return Relation::EQUAL;
+  if (x < y) return Relation::LESS_THAN;
+  return Relation::GREATER_THAN;
 }
 
 struct Point {

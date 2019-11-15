@@ -19,7 +19,7 @@ struct BIT {
     return r;
   }
   
-    INT get(int l, int r) {
+  INT get(int l, int r) {
     if (r < l) return 0;
     if (l == 0) return get(r);
     return get(r) - get(l - 1);

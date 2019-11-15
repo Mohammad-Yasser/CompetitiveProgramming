@@ -20,14 +20,14 @@ struct LCAFinder {
   }
 
   int LCA(int i, int j) { // returns node ID (LCA for i, j)
-    int st = Lg;
+    int st = Lg - 1;
     if (lvl[i] > lvl[j]) swap(i, j);
     int cur = lvl[j];
     for (; st >= 0; st--)
       if (cur - (1 << st) >= lvl[i]) cur -= (1 << st), j = anc[j][st];
     if (i == j) return i;
     cur = lvl[i];
-    for (st = Lg; st >= 0; st--)
+    for (st = Lg - 1; st >= 0; st--)
       if (anc[i][st] != anc[j][st]) cur -= (1 << st), i = anc[i][st], j =
         anc[j][st];
     return anc[i][0];

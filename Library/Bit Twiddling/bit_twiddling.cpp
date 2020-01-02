@@ -13,3 +13,5 @@ for(int sub = (mask-1) & bitmask ; sub > 0 ; sub = (sub-1) & bitmask )  {
   // do something 
 }
 
+// https://cp-algorithms.com/algebra/all-submasks.html
+// Time Complexity: O(3^n)

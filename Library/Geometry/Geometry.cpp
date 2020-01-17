@@ -1,3 +1,5 @@
+#include <bits/stdc++.h>
+using namespace std;
 
 typedef long double Double;
 
@@ -10,9 +12,9 @@ enum Relation {
 bool areEqual(Double x, Double y, Double eps = EPS) {
   auto diff = abs(x - y);
   x = abs(x), y = abs(y);
-  if (diff < eps) return true;
-  if (min(x, y) < eps) return false;
-  return diff / max(x, y) < eps;
+  if (diff <= eps) return true;
+  if (min(x, y) <= eps) return false;
+  return diff <= eps * max(x, y);
 }
 
 bool isZero(Double x, Double eps = EPS) {
@@ -32,6 +34,9 @@ struct Point {
   }
   Point() {
   }
+  pair<Double, Double> to_pair() const {
+    return make_pair(x, y);
+  }
   Point operator +(const Point &p) const {
     return Point { x + p.x, y + p.y };
   }
@@ -46,13 +51,13 @@ struct Point {
     return Point(x / c, y / c);
   }
   bool operator<(const Point &p) const {
-    return areEqual(x, p.x) ? (y < p.y) : (x < p.x);
+    return to_pair() < p.to_pair();
   }
   bool operator>(const Point& p) const {
-    return areEqual(x, p.x) ? (y > p.y) : (x > p.x);
+    return !(*this < p);
   }
   bool operator==(const Point &p) const {
-    return areEqual(x, p.x) && areEqual(y, p.y);
+    return !(*this < p) && !(*this > p);
   }
   bool operator!=(const Point& p) const {
     return !(*this == p);
@@ -60,6 +65,7 @@ struct Point {
 };
 
 typedef Point Vector;
+typedef array<Point, 2> Segment;
 
 Vector getVector(const Point& p1, const Point& p2) {
   return p2 - p1;
@@ -143,7 +149,7 @@ int getDirection(const Point& a, const Point& b, const Point& c) {
   return 2 * (value > 0) - 1;
 }
 
-// Checks if c lies in the range [a,b].
+// Checks if c lies in the range [a,b]. NOTE: if b < a, returns false.
 bool checkInRange(Double a, Double b, Double c, Double eps = EPS) {
   if (areEqual(a, c)) return true;
   if (areEqual(b, c)) return true;
@@ -153,7 +159,8 @@ bool checkInRange(Double a, Double b, Double c, Double eps = EPS) {
 // Assuming that c already lies on the straight line ab,
 // returns true if c lies on the segment ab.
 bool onSegment(const Point& a, const Point& b, const Point& c) {
-  return checkInRange(a.x, b.x, c.x) && checkInRange(a.y, b.y, c.y);
+  return checkInRange(min(a.x, b.x), max(a.x, b.x), c.x)
+    && checkInRange(min(a.y, b.y), max(a.y, b.y), c.y);
 }
 
 // Returns true if one segment is nested in the other.
@@ -181,6 +188,10 @@ bool SegmentsIntersect(const Point& a, const Point& b, const Point& c,
   return (((d1 > 0) == (d2 < 0)) && ((d3 > 0) == (d4 < 0)));
 }
 
+bool SegmentsIntersect(const Segment& a, const Segment& b) {
+  return SegmentsIntersect(a[0], a[1], b[0], b[1]);
+}
+
 // ST Line ab intersect ST Line cd assuming unique intersection exists
 // for line segments, check if segments intersect first
 Point ComputeLineIntersection(Point a, Point b, Point c, Point d) {
@@ -188,6 +199,20 @@ Point ComputeLineIntersection(Point a, Point b, Point c, Point d) {
   d = c - d;
   c = c - a;
   return a + b * cross(c, d) / cross(b, d); // cross(b,d) != 0
+}
+
+// Pre-condition: `Double` is non floating point.
+bool SegmentsIntersectAtLatticePoint(const Segment& seg1, const Segment& seg2) {
+  if (!SegmentsIntersect(seg1, seg2)) return false;
+  Point a = seg1[0], b = seg1[1], c = seg2[0], d = seg2[1];
+  b = b - a;
+  d = c - d;
+  c = c - a;
+  Long cd = abs(cross(c, d));
+  Long bd = abs(cross(b, d));
+  if (bd == 0) return false;
+  bd /= __gcd(bd, cd);
+  return b.x % bd == 0 && b.y % bd == 0;
 }
 
 vector<Point> CircleLineIntersection(Point a, Point b, Point c, Double r) {
@@ -279,9 +304,10 @@ Circle minEnclosingCircle(const vector<Point>& points) {
   return minEnclosingCircle(shuffled, ps, r);
 }
 
-
-typedef array<Point, 2> Segment;
-
+int countLattticePoints(const Segment& segment) {
+  return __gcd(abs(segment[0].x - segment[1].x),
+    abs(segment[0].y - segment[1].y)) + 1;
+}
 
 
 // Check if any 2 segments from a set of given segments intersect.

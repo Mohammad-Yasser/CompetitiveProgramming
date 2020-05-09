@@ -32,7 +32,7 @@ struct MaxFlowSolver {
   }
 
   void AddEdge(int u, int v, int c, int id) {
-    Edge edge = { head[u], u, v, c, id };
+    Edge edge = {head[u], u, v, c, id};
     head[u] = cnt_edges;
     edges[cnt_edges] = edge;
     ++cnt_edges;
@@ -47,7 +47,7 @@ struct MaxFlowSolver {
   ct ddfs(int cur = kSource, ct minic = OO) {
     if (cur == kSink) return minic;
 
-    for (int &i = headcpy[cur]; i != -1; i = edges[i].nxt) {
+    for (int& i = headcpy[cur]; i != -1; i = edges[i].nxt) {
       Edge& edge = edges[i];
       int to = edge.to;
 
@@ -92,8 +92,7 @@ struct MaxFlowSolver {
     while (dbfs()) {
       ct f;
       memcpy(headcpy, head, sizeof head);
-      while (f = ddfs(), f)
-        ret += f;
+      while (f = ddfs(), f) ret += f;
     }
     return ret;
   }

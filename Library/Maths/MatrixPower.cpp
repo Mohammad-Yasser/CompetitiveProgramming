@@ -37,10 +37,9 @@ Matrix identity_element(const MatrixMultiplier& m) {
   return res;
 }
 
-Matrix empty_matrix(int r, int c) {
-  return Matrix(r, Row(c));
-}
+Matrix empty_matrix(int r, int c) { return Matrix(r, Row(c)); }
 
-Matrix empty_matrix(int r) {
-  return empty_matrix(r, r);
-}
+Matrix empty_matrix(int r) { return empty_matrix(r, r); }
+
+// To use:
+// power(Matrix, n, multiplier)

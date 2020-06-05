@@ -5,9 +5,7 @@ typedef long double Double;
 
 const Double EPS = 1e-10;
 
-enum Relation {
-  LESS_THAN, EQUAL, GREATER_THAN
-};
+enum Relation { LESS_THAN, EQUAL, GREATER_THAN };
 
 bool areEqual(Double x, Double y, Double eps = EPS) {
   auto diff = abs(x - y);
@@ -17,9 +15,7 @@ bool areEqual(Double x, Double y, Double eps = EPS) {
   return diff <= eps * max(x, y);
 }
 
-bool isZero(Double x, Double eps = EPS) {
-  return abs(x) <= eps;
-}
+bool isZero(Double x, Double eps = EPS) { return abs(x) <= eps; }
 
 int compareDoubles(Double x, Double y, Double eps = EPS) {
   if (areEqual(x, y, eps)) return Relation::EQUAL;
@@ -27,114 +23,84 @@ int compareDoubles(Double x, Double y, Double eps = EPS) {
   return Relation::GREATER_THAN;
 }
 
+template <class T>
 struct Point {
-  Double x = 0, y = 0;
-  Point(Double x, Double y) :
-    x(x), y(y) {
+  typedef Point P;
+  T x = 0, y = 0;
+  Point(T x, T y) : x(x), y(y) {}
+  Point() {}
+  pair<T, T> to_pair() const { return make_pair(x, y); }
+  Point operator+(const Point& p) const { return Point{x + p.x, y + p.y}; }
+  Point operator-(const Point& p) const { return Point{x - p.x, y - p.y}; }
+  Point operator*(T c) const { return Point(x * c, y * c); }
+  Point operator/(T c) const { return Point(x / c, y / c); }
+  bool operator<(const Point& p) const {
+    return (*this) != p && to_pair() < p.to_pair();
   }
-  Point() {
+  bool operator>(const Point& p) const { return (*this) != p && !(*this < p); }
+  bool operator==(const Point& p) const {
+    return isZero(this->x - p.x) && isZero(this->y - p.y);
   }
-  pair<Double, Double> to_pair() const {
-    return make_pair(x, y);
+  bool operator!=(const Point& p) const { return !(*this == p); }
+  T cross(const P& p) const { return x * p.y - y * p.x; }
+  T cross(const P& a, const P& b) const { return (a - *this).cross(b - *this); }
+  T dot(const P& p) const { return x * p.x + y * p.y; }
+  P midPoint(const P& p) const { return ((*this) + p) / 2; }
+  P getVector(const P& p) const { return p - (*this); }
+  T dist2(const P& p) const { return getVector(p).length2(); }
+  T length2() const { return (*this).dot(*this); }
+  Double dist(const P& p) const { return sqrt(dist2(p)); }
+  P rotateCCW90() const { return P(-y, x); }
+  P rotateCCW90Around(const P& p) const {
+    return p + p.getVector(*this).rotateCCW90();
   }
-  Point operator +(const Point &p) const {
-    return Point { x + p.x, y + p.y };
+  P rotateCCW(Double angle) const {
+    return Point(x * cos(angle) - y * sin(angle),
+                 x * sin(angle) + y * cos(angle));
   }
 
-  Point operator -(const Point &p) const {
-    return Point { x - p.x, y - p.y };
+  // Project point onto line through a and b (assuming a != b).
+  P projectOnLine(const P& a, const P& b) const {
+    P ab = a.getVector(b);
+    P ac = a.getVector(*this);
+    return a + ab * ac.dot(ab) / a.dist2(b);
   }
-  Point operator *(Double c) const {
-    return Point(x * c, y * c);
+
+  // Project point c onto line segment through a and b (assuming a != b).
+  P projectOnSegment(const P& a, const P& b) const {
+    P& c = *this;
+    P ab = a.getVector(b);
+    P ac = a.getVector(c);
+
+    Double r = dot(ac, ab), d = a.dist2(b);
+    if (r < 0) return a;
+    if (r > d) return b;
+
+    return a + ab * r / d;
   }
-  Point operator /(Double c) {
-    return Point(x / c, y / c);
+
+  P reflectAroundLine(const P& a, const P& b) const {
+    return projectOnLine(a, b) * 2 - (*this);
   }
-  bool operator<(const Point &p) const {
-    return to_pair() < p.to_pair();
-  }
-  bool operator>(const Point& p) const {
-    return !(*this < p);
-  }
-  bool operator==(const Point &p) const {
-    return !(*this < p) && !(*this > p);
-  }
-  bool operator!=(const Point& p) const {
-    return !(*this == p);
+
+  friend istream& operator>>(istream& is, P& p) { return is >> p.x >> p.y; }
+
+  friend ostream& operator<<(ostream& os, P& p) {
+    return os << p.x << " " << p.y;
   }
 };
 
-typedef Point Vector;
-typedef array<Point, 2> Segment;
-
-Vector getVector(const Point& p1, const Point& p2) {
-  return p2 - p1;
-}
-
-Double dot(Point p, Point q) {
-  return p.x * q.x + p.y * q.y;
-}
-
-Point midPoint(const Point& p1, const Point& p2) {
-  return (p1 + p2) / 2;
-}
-
-Double dist2(Point p, Point q) {
-  return dot(p - q, p - q);
-}
-
-Double dist(Point p, Point q) {
-  return sqrt(dist2(p, q));
-}
-
-Double cross(Point p, Point q) {
-  return p.x * q.y - p.y * q.x;
-}
-
-Point norm(Point x, Double l) {
-  return x * sqrt(l * l / dot(x, x));
-}
-
-Vector getPerpendicularVector(const Vector& vec) {
-  return Vector(-vec.y, vec.x);
-}
-
-istream &operator>>(istream &is, Point &p) {
-  return is >> p.x >> p.y;
-}
-
-Point RotateCCW90(Point p) {
-  return Point(-p.y, p.x);
-}
-
-Point RotateCCW(Point p, Double t) {
-  return Point(p.x * cos(t) - p.y * sin(t), p.x * sin(t) + p.y * cos(t));
-}
-
-// project point c onto line through a and b (assuming a != b)
-Point ProjectPointLine(Point a, Point b, Point c) {
-  return a + (b - a) * dot(c - a, b - a) / dot(b - a, b - a);
-}
-
-// project point c onto line segment through a and b (assuming a != b)
-Point ProjectPointSegment(Point a, Point b, Point c) {
-  Double r = dot(c - a, b - a), d = dot(b - a, b - a);
-  if (r < 0) return a;
-  if (r > d) return b;
-  return a + (b - a) * r / d;
-}
-
-Point reflectAroundLine(Point p, Point a, Point b) {
-  return ProjectPointLine(p, a, b) * 2 - p;
-}
+typedef Point<Double> Vector;
+typedef Point<Double> P;
+typedef array<P, 2> Segment;
 
 bool LinesParallel(const Point& a, const Point& b, const Point& c,
-  const Point& d) {
+                   const Point& d) {
   return isZero(cross(b - a, c - d));
 }
 
 bool LinesCollinear(const Point& a, const Point& b, const Point& c,
-  const Point& d) {
+                    const Point& d) {
   return LinesParallel(a, b, c, d) && isZero(cross(b - c, a - c));
 }
 
@@ -159,21 +125,21 @@ bool checkInRange(Double a, Double b, Double c, Double eps = EPS) {
 // Assuming that c already lies on the straight line ab,
 // returns true if c lies on the segment ab.
 bool onSegment(const Point& a, const Point& b, const Point& c) {
-  return checkInRange(min(a.x, b.x), max(a.x, b.x), c.x)
-    && checkInRange(min(a.y, b.y), max(a.y, b.y), c.y);
+  return checkInRange(min(a.x, b.x), max(a.x, b.x), c.x) &&
+         checkInRange(min(a.y, b.y), max(a.y, b.y), c.y);
 }
 
 // Returns true if one segment is nested in the other.
 bool nestedSegment(const Point& a, const Point& b, const Point& c,
-  const Point& d) {
-  return (LinesCollinear(a, b, c, d)
-    && (((onSegment(a, b, c) && onSegment(a, b, d))
-      || (onSegment(c, d, a) && onSegment(c, d, b)))));
+                   const Point& d) {
+  return (LinesCollinear(a, b, c, d) &&
+          (((onSegment(a, b, c) && onSegment(a, b, d)) ||
+            (onSegment(c, d, a) && onSegment(c, d, b)))));
 }
 
 // Determine if a to b intersects with c to d.
 bool SegmentsIntersect(const Point& a, const Point& b, const Point& c,
-  const Point& d) {
+                       const Point& d) {
   // Handles collinear cases.
   auto d1 = getDirection(c, d, a);
   auto d2 = getDirection(c, d, b);
@@ -198,7 +164,7 @@ Point ComputeLineIntersection(Point a, Point b, Point c, Point d) {
   b = b - a;
   d = c - d;
   c = c - a;
-  return a + b * cross(c, d) / cross(b, d); // cross(b,d) != 0
+  return a + b * cross(c, d) / cross(b, d);  // cross(b,d) != 0
 }
 
 // Pre-condition: `Double` is non floating point.
@@ -247,12 +213,12 @@ struct Circle {
   }
 };
 
-Circle circle2(const Point &p1, const Point &p2) {
-  return Circle { midPoint(p1, p2), dist(p1, p2) / 2 };
+Circle circle2(const Point& p1, const Point& p2) {
+  return Circle{midPoint(p1, p2), dist(p1, p2) / 2};
 }
 
 // Returns `Invalid Circle` iff the three points are collinear.
-Circle circle3(const Point &p1, const Point &p2, const Point &p3) {
+Circle circle3(const Point& p1, const Point& p2, const Point& p3) {
   if (areCollinear(p1, p2, p3)) return Circle::invalidCircle();
   Point m1 = midPoint(p1, p2);
   Point m2 = midPoint(p2, p3);
@@ -266,8 +232,7 @@ Circle circle3(const Point &p1, const Point &p2, const Point &p3) {
 
 // Don't forget to random shuffle.
 Circle minEnclosingCircle(const vector<Point>& points, int& ps,
-  vector<Point>& r) {
-
+                          vector<Point>& r) {
   if (r.size() == 3) {
     return circle3(r[0], r[1], r[2]);
   }
@@ -278,9 +243,9 @@ Circle minEnclosingCircle(const vector<Point>& points, int& ps,
 
   if (ps == 0) {
     if (r.empty()) {
-      return Circle { Point(0, 0), 0 };
+      return Circle{Point(0, 0), 0};
     }
-    return Circle { r[0], 0 };
+    return Circle{r[0], 0};
   }
 
   --ps;
@@ -306,93 +271,91 @@ Circle minEnclosingCircle(const vector<Point>& points) {
 
 int countLattticePoints(const Segment& segment) {
   return __gcd(abs(segment[0].x - segment[1].x),
-    abs(segment[0].y - segment[1].y)) + 1;
+               abs(segment[0].y - segment[1].y)) +
+         1;
 }
-
 
 // Check if any 2 segments from a set of given segments intersect.
 {
-struct Event {
-  int x, type, y, id;
+  struct Event {
+    int x, type, y, id;
 
-  tuple<int, int, int, int> getTuple() const {
-    return make_tuple(x, type, y, id);
-  }
-
-  bool operator <(const Event& other) const {
-    return getTuple() < other.getTuple();
-  }
-
-  Event(int x, int type, int y, int id) :
-    x(x), type(type), y(y), id(id) {
-  }
-};
-
-struct SetComparator {
-  static vector<Segment> segments;
-  bool operator()(int a, int b) const {
-    if (segments[a][0].x == segments[b][0].x) {
-      return segments[a][0].y < segments[b][0].y;
+    tuple<int, int, int, int> getTuple() const {
+      return make_tuple(x, type, y, id);
     }
-    if (segments[a][0] > segments[b][0]) {
-      int dir = getDirection(segments[b][0], segments[b][1], segments[a][0]);
-      return dir > 0;
+
+    bool operator<(const Event& other) const {
+      return getTuple() < other.getTuple();
     }
-    int dir = getDirection(segments[a][0], segments[a][1], segments[b][0]);
-    return dir < 0;
-  }
-};
 
-vector<Segment> SetComparator::segments;
+    Event(int x, int type, int y, int id) : x(x), type(type), y(y), id(id) {}
+  };
 
-bool noIntersection(const vector<Segment>& segments) {
-  int n = segments.size();
-  vector<Event> events;
-  for (int i = 0; i < n; ++i) {
-    // Each segment endpoints must be sorted.
-    assert(segments[i][0] < segments[i][1]);
-    events.emplace_back(segments[i][0].x, 0, segments[i][0].y, i);
-    events.emplace_back(segments[i][1].x, 1, segments[i][1].y, i);
-  }
-
-  sort(events.begin(), events.end());
-
-  SetComparator::segments = segments;
-  set<int, SetComparator> st;
-
-  for (auto& event : events) {
-    if (event.type == 0) {
-      auto nxt = st.upper_bound(event.id);
-      if (nxt != st.end()) {
-        if (SegmentsIntersect(segments[event.id][0], segments[event.id][1],
-          segments[*nxt][0], segments[*nxt][1])) return false;
+  struct SetComparator {
+    static vector<Segment> segments;
+    bool operator()(int a, int b) const {
+      if (segments[a][0].x == segments[b][0].x) {
+        return segments[a][0].y < segments[b][0].y;
       }
-
-      if (nxt != st.begin()) {
-        --nxt;
-        if (SegmentsIntersect(segments[event.id][0], segments[event.id][1],
-          segments[*nxt][0], segments[*nxt][1])) return false;
+      if (segments[a][0] > segments[b][0]) {
+        int dir = getDirection(segments[b][0], segments[b][1], segments[a][0]);
+        return dir > 0;
       }
+      int dir = getDirection(segments[a][0], segments[a][1], segments[b][0]);
+      return dir < 0;
+    }
+  };
 
-      st.insert(event.id);
+  vector<Segment> SetComparator::segments;
 
-    } else {
-      st.erase(event.id);
-      auto nxt = st.upper_bound(event.id);
-      if (nxt != st.end() && nxt != st.begin()) {
-        auto before = nxt;
-        --before;
-        if (SegmentsIntersect(segments[*before][0], segments[*before][1],
-          segments[*nxt][0], segments[*nxt][1])) {
-          return false;
+  bool noIntersection(const vector<Segment>& segments) {
+    int n = segments.size();
+    vector<Event> events;
+    for (int i = 0; i < n; ++i) {
+      // Each segment endpoints must be sorted.
+      assert(segments[i][0] < segments[i][1]);
+      events.emplace_back(segments[i][0].x, 0, segments[i][0].y, i);
+      events.emplace_back(segments[i][1].x, 1, segments[i][1].y, i);
+    }
+
+    sort(events.begin(), events.end());
+
+    SetComparator::segments = segments;
+    set<int, SetComparator> st;
+
+    for (auto& event : events) {
+      if (event.type == 0) {
+        auto nxt = st.upper_bound(event.id);
+        if (nxt != st.end()) {
+          if (SegmentsIntersect(segments[event.id][0], segments[event.id][1],
+                                segments[*nxt][0], segments[*nxt][1]))
+            return false;
+        }
+
+        if (nxt != st.begin()) {
+          --nxt;
+          if (SegmentsIntersect(segments[event.id][0], segments[event.id][1],
+                                segments[*nxt][0], segments[*nxt][1]))
+            return false;
+        }
+
+        st.insert(event.id);
+
+      } else {
+        st.erase(event.id);
+        auto nxt = st.upper_bound(event.id);
+        if (nxt != st.end() && nxt != st.begin()) {
+          auto before = nxt;
+          --before;
+          if (SegmentsIntersect(segments[*before][0], segments[*before][1],
+                                segments[*nxt][0], segments[*nxt][1])) {
+            return false;
+          }
         }
       }
     }
-  }
 
-  return true;
-}
+    return true;
+  }
 }
 // End
-
-

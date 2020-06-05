@@ -23,9 +23,12 @@ int compareDoubles(Double x, Double y, Double eps = EPS) {
   return Relation::GREATER_THAN;
 }
 
-template <class T>
+template <typename T = Double>
 struct Point {
   typedef Point P;
+  const static P Invalid;
+  const static P Origin;
+
   T x = 0, y = 0;
   Point(T x, T y) : x(x), y(y) {}
   Point() {}
@@ -47,9 +50,10 @@ struct Point {
   T dot(const P& p) const { return x * p.x + y * p.y; }
   P midPoint(const P& p) const { return ((*this) + p) / 2; }
   P getVector(const P& p) const { return p - (*this); }
-  T dist2(const P& p) const { return getVector(p).length2(); }
-  T length2() const { return (*this).dot(*this); }
+  T dist2(const P& p) const { return getVector(p).dist2(); }
+  T dist2() const { return (*this).dot(*this); }
   Double dist(const P& p) const { return sqrt(dist2(p)); }
+  Double dist() const { return sqrt(dist2()); }
   P rotateCCW90() const { return P(-y, x); }
   P rotateCCW90Around(const P& p) const {
     return p + p.getVector(*this).rotateCCW90();
@@ -89,6 +93,12 @@ struct Point {
     return os << p.x << " " << p.y;
   }
 };
+
+template <typename T>
+const Point<T> Point<T>::Invalid = Point<T>(numeric_limits<T>::max(),
+                                            numeric_limits<T>::max());
+template <typename T>
+const Point<T> Point<T>::Origin = Point<T>(0, 0);
 
 typedef Point<Double> Vector;
 typedef Point<Double> P;
@@ -199,14 +209,15 @@ Double computeArcLength(Double r, Double chord_length) {
   return r * theta;
 }
 
+template <typename T = Double>
 struct Circle {
-  Point centre;
-  Double r;
+  Point<T> centre;
+  T r;
   bool contains(const Point& p) const {
     return compareDoubles(dist2(centre, p), r * r) != 1;
   }
   static Circle invalidCircle() {
-    Circle circle;
+    static Circle circle;
     circle.centre = Point(0, 0);
     circle.r = -1;
     return circle;
@@ -267,6 +278,33 @@ Circle minEnclosingCircle(const vector<Point>& points) {
   int ps = points.size();
   vector<Point> r;
   return minEnclosingCircle(shuffled, ps, r);
+}
+
+// Adapted from
+// https://github.com/kth-competitive-programming/kactl/blob/master/content/geometry/CircleIntersection.h
+pair<P, P> circleInter(const P& a, const P& b, Double r1, Double r2) {
+  pair<P, P> invalid = {P::Invalid, P::Invalid};
+  if (a == b) {
+    if (isZero(r1) && isZero(r2)) return {a, a};
+    return invalid;
+  }
+  P vec = b - a;
+  Double d2 = vec.dist2(), sum = r1 + r2, dif = r1 - r2;
+  Double p = (d2 + r1 * r1 - r2 * r2) / (d2 * 2), h2 = r1 * r1 - p * p * d2;
+
+  // Not sure that `compareDoubles` is better than just using < , > here.
+  if (compareDoubles(sum * sum, d2) == Relation::LESS_THAN ||
+      compareDoubles(dif * dif, d2) == Relation::GREATER_THAN)
+    return invalid;
+
+  P mid = a + vec * p, per = vec.rotateCCW90() * sqrt(fmax(0, h2) / d2);
+  return {mid + per, mid - per};
+}
+
+// Adapted from
+// https://github.com/kth-competitive-programming/kactl/blob/master/content/geometry/CircleIntersection.h
+pair<P, P> circleInter(const Circle& a, const Circle& b) {
+  return circleInter(a.centre, b.centre, a.r, b.r);
 }
 
 int countLattticePoints(const Segment& segment) {

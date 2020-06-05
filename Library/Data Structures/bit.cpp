@@ -1,13 +1,11 @@
 
-template<class INT, int nLeaves>
+template <class INT, int nLeaves>
 struct BIT {
-  const int kMaxSize = 1 << (int) ceil(log2(nLeaves + 1e-9));
+  const int kMaxSize = 1 << (int)ceil(log2(nLeaves + 1e-9));
   vector<INT> arr;
   INT size = 0;
 
-  BIT() {
-    arr.resize(kMaxSize);
-  }
+  BIT() { arr.resize(kMaxSize); }
 
   INT get(int i) {
     i++;
@@ -18,13 +16,12 @@ struct BIT {
     }
     return r;
   }
-  
+
   INT get(int l, int r) {
     if (r < l) return 0;
     if (l == 0) return get(r);
     return get(r) - get(l - 1);
   }
-
 
   void add(int i, INT val = 1) {
     size += val;
@@ -32,7 +29,7 @@ struct BIT {
     while (i <= kMaxSize) {
       arr[i - 1] += val;
       i += i & -i;
-    }	
+    }
   }
 
   // Finds element at index ind.

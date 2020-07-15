@@ -87,12 +87,33 @@ struct Point {
     return projectOnLine(a, b) * 2 - (*this);
   }
 
+  int getQuad() const {
+    if (x >= 0) {
+      if (y >= 0) return 0;
+      return 3;
+    }
+    if (y >= 0) return 1;
+    return 2;
+  }
+
   friend istream& operator>>(istream& is, P& p) { return is >> p.x >> p.y; }
 
   friend ostream& operator<<(ostream& os, P& p) {
     return os << p.x << " " << p.y;
   }
 };
+
+bool antiClockwiseComparator(const P& a, const P& b) {
+  int q1 = a.getQuad(), q2 = b.getQuad();
+  if (q1 != q2) {
+    return q1 < q2;
+  }
+  auto cross = a.cross(b);
+  if (cross == 0) {
+    return a.dist2() < b.dist2();
+  }
+  return cross > 0;
+}
 
 template <typename T>
 const Point<T> Point<T>::Invalid = Point<T>(numeric_limits<T>::max(),

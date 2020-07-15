@@ -12,14 +12,8 @@
  * exists. Time: O(V + E) Status: stress-tested
  */
 
-vector<pii> eulerWalk(const vector<vector<pii>>& gr, int nedges, int src = -1) {
+vector<pii> eulerWalk(const vector<vector<pii>>& gr, int nedges, int src) {
   int n = sz(gr);
-  if (src == -1) {
-    // Find a non-isolated node.
-    src = find_if(all(gr), [](const vector<pii>& v) { return !v.empty(); }) -
-          begin(gr);
-    if (src == n) return {};
-  }
 
   vi D(n), its(n), eu(nedges);
   vector<pii> s = {make_pair(src, -1)};
@@ -45,4 +39,27 @@ vector<pii> eulerWalk(const vector<vector<pii>>& gr, int nedges, int src = -1) {
   if (sz(ret) != nedges + 1) return {};
   reverse(all(ret));
   return ret;
+}
+
+vector<pii> eulerPath(const vector<vector<pii>>& gr, int nedges, int src = -1) {
+  if (src == -1) {
+    src = find_if(all(gr), [](const vi& v) { return sz(v) & 1; }) - begin(gr);
+    if (src == n) {
+      src =
+          find_if(all(gr), [](const vi& v) { return !v.empty(); }) - begin(gr);
+    }
+    if (src == n) return {};
+  }
+  return eulerWalk(gr, nedges, src);
+}
+
+vector<pii> eulerCycle(const vector<vector<pii>>& gr, int nedges,
+                       int src = -1) {
+  if (src == -1) {
+    src = find_if(all(gr), [](const vi& v) { return !v.empty(); }) - begin(gr);
+    if (src == n) return {};
+  }
+  auto res = eulerWalk(gr, nedges, src);
+  if (res.back().first != src) return {};
+  return res;
 }

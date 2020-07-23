@@ -1,6 +1,4 @@
-bool isSet(int n, int b) {
-  return (n >> b) & 1;
-}
+bool isSet(int n, int b) { return (n >> b) & 1; }
 
 int getRank(const vector<int>& mat) {
   vector<int> res = mat;
@@ -28,13 +26,9 @@ int getRank(const vector<int>& mat) {
 
 // Another one, with Longs and iterating from MSB to LSB instead of vice versa.
 
-bool isSet(Long n, int b) {
-  return (n >> b) & 1LL;
-}
+bool isSet(Long n, int b) { return (n >> b) & 1LL; }
 
-void printRow(int x) {
-  cout << bitset<5>(x).to_string() << endl;
-}
+void printRow(int x) { cout << bitset<5>(x).to_string() << endl; }
 
 void printMat(const vector<Long>& mat) {
   for (auto& x : mat) {
@@ -74,4 +68,3 @@ int getRank(const vector<Long>& mat) {
   }
   return res;
 }
-

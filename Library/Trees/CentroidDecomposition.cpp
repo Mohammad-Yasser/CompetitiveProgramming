@@ -1,118 +1,61 @@
 // My modification of Anany's
-
-template <typename T, class F = function<T(const T&, const T&)>>
-struct SparseTable {
-  int n;
-  vector<vector<T>> sp;
-  F func;
-
-  SparseTable() {}
-
-  void init(const vector<T>& a, const F& f) {
-    func = f;
-    n = static_cast<int>(a.size());
-    int max_log = 32 - __builtin_clz(n);
-    sp.resize(max_log);
-    sp[0] = a;
-    for (int j = 1; j < max_log; ++j) {
-      sp[j].resize(n - (1 << j) + 1);
-      for (int i = 0; i <= n - (1 << j); ++i) {
-        sp[j][i] = func(sp[j - 1][i], sp[j - 1][i + (1 << (j - 1))]);
-      }
-    }
-  }
-
-  T query(int l, int r) const {
-    int lg = 32 - __builtin_clz(r - l + 1) - 1;
-    return func(sp[lg][l], sp[lg][r - (1 << lg) + 1]);
-  }
-};
-
 struct Edge {
   int to, weight;
   Edge(int to = 0, int weight = 0) : to(to), weight(weight) {}
 };
-
 struct Tree {
   vector<vector<Edge>> adj;
-  int max_log;
-  vector<Long> dist;
-  vector<int> depth;
-  vector<int> subtree_size;
-  vector<int> time_in;
-  vector<int> euler_tour;
-  vector<int> enter_index;   // First index of the node in the euler tour.
-  vector<int> time_to_node;  // time_to_node[i] is u s.t. time_in[u] == i.
-  SparseTable<int> sparse_table;
+  Tree(int n) : adj(n + 1) {}
 
-  Tree(int n)
-      : adj(n + 1),
-        dist(n + 1),
-        depth(n + 1),
-        subtree_size(n + 1),
-        time_in(n + 1),
-        time_to_node(n + 1),
-        enter_index(n + 1) {}
-  void build() {
-    pDFS(1);
-    sparse_table.init(euler_tour, [&](int u, int v) {
-      return (time_in[u] < time_in[v]) ? u : v;
-    });
-  }
-  void addEdge(int u, int v, int w = 1) {
+  inline void addEdge(int u, int v, int w = 1) {
     adj[u].emplace_back(v, w);
     adj[v].emplace_back(u, w);
   }
-  int size() const { return sz(adj); }
-  void pDFS(int u, int p = -1, int timer = 0) {
-    time_in[u] = timer++;
-    time_to_node[time_in[u]] = u;
-    subtree_size[u] = 1;
-    enter_index[u] = sz(euler_tour);
-    euler_tour.emplace_back(u);
 
-    for (auto& edge : adj[u]) {
-      int v = edge.to;
-      if (v != p) {
-        dist[v] = dist[u] + edge.weight;
-        depth[v] = depth[u] + 1;
-        pDFS(v, u, timer);
-        euler_tour.emplace_back(u);
-        subtree_size[u] += subtree_size[v];
-      }
-    }
-  }
-  int getLCA(int u, int v) {
-    int l = enter_index[u];
-    int r = enter_index[v];
-    if (l > r) swap(l, r);
-    return sparse_table.query(l, r);
-  }
-  Long getDist(int u, int v) {
-    return dist[u] + dist[v] - 2 * dist[getLCA(u, v)];
-  }
+  int size() const { return sz(adj); }
 };
 
+// ancestors[] edition
 struct CentroidDecomposition {
   Tree tree;
   int n;
-  vector<int> sz, lvl, par;
+  vector<int> sz;
   vector<bool> vis;
+
+  struct AncestorInfo {
+    int ancestor;
+    Long dist;
+    AncestorInfo(int anc, Long dist) : ancestor(anc), dist(dist) {}
+  };
+  vector<vector<AncestorInfo>> ancestors;
+
   CentroidDecomposition(const Tree& tree) : tree(tree) {
     n = tree.size();
-    sz = par = lvl = vector<int>(n);
-    vis = vector<bool>(n);
-    this->tree.build();
-    ConstructTree(1, -1);
+    sz = vector<int>(n);
+    ancestors.resize(n);
+    vis.resize(n);
+    ConstructTree(1);
   }
 
-  int getSz(int u, int p) {
+  void dfsSize(int u, int p) {
     sz[u] = 1;
     for (auto& edge : tree.adj[u]) {
       int v = edge.to;
-      if (v != p && !vis[v]) sz[u] += getSz(v, u);
+      if (v != p && !vis[v]) {
+        dfsSize(v, u);
+        sz[u] += sz[v];
+      }
     }
-    return sz[u];
+  }
+
+  void dfsAncestor(int u, int p, int ancestor, Long d) {
+    ancestors[u].emplace_back(ancestor, d);
+    for (auto& edge : tree.adj[u]) {
+      int v = edge.to;
+      if (v != p && !vis[v]) {
+        dfsAncestor(v, u, ancestor, d + edge.weight);
+      }
+    }
   }
 
   int getCentroid(int u, int p, int max_size) {
@@ -124,38 +67,295 @@ struct CentroidDecomposition {
     return u;
   }
 
-  void ConstructTree(int u, int p) {
-    int subtree_size = getSz(u, u);
+  void ConstructTree(int u) {
+    dfsSize(u, u);
+    int subtree_size = sz[u];
     int centroid = getCentroid(u, u, subtree_size / 2);
+    line_container[centroid].lines.reserve(subtree_size);
+    dfsAncestor(centroid, centroid, centroid, 0);
     vis[centroid] = 1;
-    if (p == -1)
-      p = centroid;
-    else
-      lvl[centroid] = lvl[p] + 1;
-    par[centroid] = (p == centroid ? -1 : p);
     for (auto edge : tree.adj[centroid]) {
       int v = edge.to;
-      if (!vis[v]) ConstructTree(v, centroid);
+      if (!vis[v]) ConstructTree(v);
     }
   }
 
   void update(int u) {
-    int x = u;
-    while (~x) {
+    for (auto& anc : ancestors[u]) {
       // Update ancestor
-      line_container[x].addLine(penalty[u], tree.getDist(u, x));
-      x = par[x];
+      line_container[anc.ancestor].addLine(penalty[u], anc.dist);
     }
   }
   Long query(int u) {
-    int x = u;
     Long res = LLONG_MAX;
-    while (~x) {
+    for (auto& anc : ancestors[u]) {
       // Query ancestor
-      res = min(res, line_container[x].query(penalty[u]) + tree.getDist(u, x));
-      x = par[x];
+      res = min(res, line_container[anc.ancestor].query(penalty[u]) + anc.dist);
     }
     return res;
+  }
+};
+
+// descendants[] edition
+
+struct CentroidDecomposition {
+  Tree tree;
+  int n;
+  vector<int> sz;
+  vector<bool> vis;
+
+  struct DescendantInfo {
+    int descendant;
+    Long dist;
+    DescendantInfo(int descendant, Long dist)
+        : descendant(descendant), dist(dist) {}
+  };
+  vector<vector<DescendantInfo>> descendants;
+
+  CentroidDecomposition(const Tree& tree) : tree(tree) {
+    n = tree.size();
+    sz = vector<int>(n);
+    descendants.resize(n);
+    vis.resize(n);
+    ConstructTree(1);
+  }
+
+  void dfsSize(int u, int p) {
+    sz[u] = 1;
+    for (auto& edge : tree.adj[u]) {
+      int v = edge.to;
+      if (v != p && !vis[v]) {
+        dfsSize(v, u);
+        sz[u] += sz[v];
+      }
+    }
+  }
+
+  void dfsAncestor(int u, int p, int ancestor, Long d) {
+    descendants[ancestor].emplace_back(u, d);
+    for (auto& edge : tree.adj[u]) {
+      int v = edge.to;
+      if (v != p && !vis[v]) {
+        dfsAncestor(v, u, ancestor, d + edge.weight);
+      }
+    }
+  }
+
+  int getCentroid(int u, int p, int max_size) {
+    for (auto& edge : tree.adj[u]) {
+      int v = edge.to;
+      if (v != p && !vis[v] && sz[v] > max_size)
+        return getCentroid(v, u, max_size);
+    }
+    return u;
+  }
+
+  void ConstructTree(int u) {
+    dfsSize(u, u);
+    int subtree_size = sz[u];
+    int centroid = getCentroid(u, u, subtree_size / 2);
+    dfsAncestor(centroid, centroid, centroid, 0);
+    vis[centroid] = 1;
+    for (auto edge : tree.adj[centroid]) {
+      int v = edge.to;
+      if (!vis[v]) ConstructTree(v);
+    }
+  }
+
+  void process(int centroid) {
+    sort(all(descendants[centroid]),
+         [&](const DescendantInfo& a, const DescendantInfo& b) {
+           return penalty[a.descendant] < penalty[b.descendant];
+         });
+    static LineContainer line_container;
+    line_container.lines.clear();
+    // Build
+    for (auto& desc : descendants[centroid]) {
+      line_container.addLine(penalty[desc.descendant], desc.dist);
+    }
+    // Query
+    for (auto& desc : descendants[centroid]) {
+      res[desc.descendant] =
+          min(res[desc.descendant],
+              line_container.query(penalty[desc.descendant]) + desc.dist);
+    }
+  }
+};
+
+// process descendants on the fly edition
+
+struct CentroidDecomposition {
+  Tree tree;
+  int n;
+  vector<int> sz;
+  vector<bool> vis;
+
+  struct DescendantInfo {
+    int descendant;
+    Long dist;
+    DescendantInfo(int descendant, Long dist)
+        : descendant(descendant), dist(dist) {}
+  };
+  vector<DescendantInfo> curr_descendants;
+
+  CentroidDecomposition(const Tree& tree) : tree(tree) {
+    n = tree.size();
+    sz = vector<int>(n);
+    vis.resize(n);
+    ConstructTree(1);
+  }
+
+  void dfsSize(int u, int p) {
+    sz[u] = 1;
+    for (auto& edge : tree.adj[u]) {
+      int v = edge.to;
+      if (v != p && !vis[v]) {
+        dfsSize(v, u);
+        sz[u] += sz[v];
+      }
+    }
+  }
+
+  void dfsAncestor(int u, int p, int ancestor, Long d) {
+    curr_descendants.emplace_back(u, d);
+    for (auto& edge : tree.adj[u]) {
+      int v = edge.to;
+      if (v != p && !vis[v]) {
+        dfsAncestor(v, u, ancestor, d + edge.weight);
+      }
+    }
+  }
+
+  int getCentroid(int u, int p, int max_size) {
+    for (auto& edge : tree.adj[u]) {
+      int v = edge.to;
+      if (v != p && !vis[v] && sz[v] > max_size)
+        return getCentroid(v, u, max_size);
+    }
+    return u;
+  }
+
+  void ConstructTree(int u) {
+    dfsSize(u, u);
+    int subtree_size = sz[u];
+    int centroid = getCentroid(u, u, subtree_size / 2);
+    curr_descendants.clear();
+    dfsAncestor(centroid, centroid, centroid, 0);
+    process();
+    vis[centroid] = 1;
+    for (auto edge : tree.adj[centroid]) {
+      int v = edge.to;
+      if (!vis[v]) ConstructTree(v);
+    }
+  }
+
+  void process() {
+    sort(all(curr_descendants),
+         [&](const DescendantInfo& a, const DescendantInfo& b) {
+           return penalty[a.descendant] < penalty[b.descendant];
+         });
+    static LineContainer line_container;
+    line_container.lines.clear();
+    // Build
+    for (auto& desc : curr_descendants) {
+      line_container.addLine(penalty[desc.descendant], desc.dist);
+    }
+    // Query
+    for (auto& desc : curr_descendants) {
+      res[desc.descendant] =
+          min(res[desc.descendant],
+              line_container.query(penalty[desc.descendant]) + desc.dist);
+    }
+  }
+};
+
+// maintaining sorted subtree edition
+
+struct CentroidDecomposition {
+  Tree tree;
+  int n;
+  vector<int> sz, subtree_id;
+  vector<Long> dist;
+  vector<bool> vis;
+  vector<vector<int>> sorted_subtree;
+
+  CentroidDecomposition(const Tree& tree, const vector<int>& sorted_nodes)
+      : tree(tree) {
+    n = tree.size();
+    sz.resize(n), vis.resize(n), dist.resize(n);
+    subtree_id.resize(n), sorted_subtree.resize(n);
+    sorted_subtree[1] = sorted_nodes;
+    ConstructTree(1);
+  }
+
+  void dfsSize(int u, int p) {
+    sz[u] = 1;
+    for (auto& edge : tree.adj[u]) {
+      int v = edge.to;
+      if (v != p && !vis[v]) {
+        dfsSize(v, u);
+        sz[u] += sz[v];
+      }
+    }
+  }
+
+  void dfsAncestor(int u, int p, int st_id, Long d) {
+    subtree_id[u] = st_id;
+    dist[u] = d;
+    for (auto& edge : tree.adj[u]) {
+      int v = edge.to;
+      if (v != p && !vis[v]) {
+        dfsAncestor(v, u, (u == p) ? v : st_id, d + edge.weight);
+      }
+    }
+  }
+
+  int getCentroid(int u, int p, int max_size) {
+    for (auto& edge : tree.adj[u]) {
+      int v = edge.to;
+      if (v != p && !vis[v] && sz[v] > max_size)
+        return getCentroid(v, u, max_size);
+    }
+    return u;
+  }
+
+  void ConstructTree(int u) {
+    dfsSize(u, u);
+    int subtree_size = sz[u];
+    int centroid = getCentroid(u, u, subtree_size / 2);
+    sorted_subtree[centroid] = sorted_subtree[u];
+    dfsAncestor(centroid, centroid, centroid, 0);
+    vis[centroid] = 1;
+    process(sorted_subtree[centroid]);
+    for (auto edge : tree.adj[centroid]) {
+      int v = edge.to;
+      if (!vis[v]) {
+        sorted_subtree[v].clear();
+      }
+    }
+
+    for (int node : sorted_subtree[centroid]) {
+      if (node == centroid) continue;
+      sorted_subtree[subtree_id[node]].emplace_back(node);
+    }
+    for (auto edge : tree.adj[centroid]) {
+      int v = edge.to;
+      if (!vis[v]) ConstructTree(v);
+    }
+  }
+
+  void process(const vector<int>& sorted_nodes) {
+    static LineContainer line_container;
+    line_container.lines.clear();
+    // Build
+    for (auto& node : sorted_nodes) {
+      line_container.addLine(penalty[node], dist[node]);
+    }
+    // Query
+    for (auto& node : sorted_nodes) {
+      res[node] =
+          min(res[node], line_container.query(penalty[node]) + dist[node]);
+    }
   }
 };
 

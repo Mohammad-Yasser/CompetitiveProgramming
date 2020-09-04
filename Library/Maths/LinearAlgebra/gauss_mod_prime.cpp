@@ -14,7 +14,7 @@ int modInverse(int x, int MOD = MOD) { return power(x, MOD - 2, MOD); }
 using Row = vector<int>;
 using Matrix = vector<Row>;
 
-bool isZero(const Row& row) { return *max_element(all(row)) == 0; }
+inline bool isZero(const Row& row) { return count(all(row), 0) == sz(row); }
 
 template <class T, class V>
 T subMod(T x, V y, int mod) {
@@ -25,11 +25,11 @@ T subMod(T x, V y, int mod) {
 Row subMultiple(const Row& a, const Row& b, int multiple, int mod) {
   Row res = a;
   for (int i = 0; i < sz(a); ++i) {
-    res[i] = subMod(res[i], 1LL * b[i] * multiple % mod, mod);
+    // Can be in range ]-mod, mod[.
+    res[i] = (res[i] - b[i] * multiple) % mod;
   }
   return res;
 }
-
 Matrix getRREF(const Matrix& mat, int mod, int& rank) {
   if (mat.empty()) return mat;
   int n = sz(mat);     // no. of vectors.
@@ -60,8 +60,8 @@ bool covered(const Matrix& rref, Row vctr, int mod) {
   int n = sz(rref);
   int m = sz(vctr);
   int curr_col = 0;
+  int first_col = 0;
   for (int row = 0; row < n && !isZero(rref[row]); ++row) {
-    int first_col = 0;
     while (rref[row][first_col] == 0) ++first_col;
     while (curr_col < m && vctr[curr_col] == 0) ++curr_col;
     if (first_col > curr_col) return false;

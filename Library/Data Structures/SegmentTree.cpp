@@ -105,6 +105,48 @@ struct Update {
   }
 };
 
+// ============================================
+// Add on segment
+// Query min_value, index of min_value
+struct Node {
+  int min_value = N;
+  int min_index = N;
+  int cnt_removed = 0;
+  int index = -1;
+  Node operator+(const Node& right) const {
+    Node res = right;
+    res.cnt_removed += cnt_removed;
+    if (min_value < right.min_value) {
+      res.min_value = min_value;
+      res.min_index = min_index;
+    }
+    if (res.index == -1) {
+      res.index = index;
+    }
+    return res;
+  }
+};
+
+struct Update {
+  int add = 0;
+  int cnt_removed = 0;
+  Update(int add = 0, int cnt_removed = 0)
+      : add(add), cnt_removed(cnt_removed) {}
+  Update operator+(const Update& right) const {
+    Update res = right;
+    res.add += add;
+    res.cnt_removed += cnt_removed;
+    return res;
+  }
+  Node operator()(const Node& node) const {
+    Node res = node;
+    res.min_value += add;
+    res.min_value = min(res.min_value, N);
+    res.cnt_removed += cnt_removed;
+    return res;
+  }
+};
+
 // =============================================
 struct Node {
   int start, end;  // The node covers the range [start,end].

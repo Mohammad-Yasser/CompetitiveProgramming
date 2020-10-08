@@ -42,6 +42,12 @@ bool SegmentsIntersect(const Point& a, const Point& b, const Point& c,
   return (((d1 > 0) == (d2 < 0)) && ((d3 > 0) == (d4 < 0)));
 }
 
+Double segDist(const P& s, const P& e, const P& p) {
+  if (s == e) return (p - s).dist();
+  auto d = (e - s).dist2(), t = min(d, max(Double(.0), (p - s).dot(e - s)));
+  return ((p - s) * d - (e - s) * t).dist() / d;
+}
+
 bool SegmentsIntersect(const Segment& a, const Segment& b) {
   return SegmentsIntersect(a[0], a[1], b[0], b[1]);
 }

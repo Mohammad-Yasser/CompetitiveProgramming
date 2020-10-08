@@ -11,6 +11,7 @@ struct Point {
   }
 };
 
+// O(n log n)
 // Sort by x before calling.
 Long closestPair(int l, int r, vector<Point>& points) {
   if (l == r) return LLONG_MAX;

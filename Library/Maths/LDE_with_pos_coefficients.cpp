@@ -1,5 +1,3 @@
-// Hmm , needs good understanding.
-
 ll egcd(ll a, ll b, ll& x, ll& y) {
   if (a == 0) {
     x = 0;
@@ -12,10 +10,11 @@ ll egcd(ll a, ll b, ll& x, ll& y) {
   y = x1;
   return d;
 }
-ll lcm(ll a, ll b) { return a * b / __gcd(a, b); }
 
+// Needs testing
 bool solve(ll x, ll y, ll c, ll& a, ll& b) {
-  // x and y are coprime.
+  // x and y must be coprime.
+  if (__gcd(x, y) != 1) return false;
   egcd(x, y, a, b);  // a * x + b * y == 1
   a *= c;
   b *= c;
@@ -23,9 +22,10 @@ bool solve(ll x, ll y, ll c, ll& a, ll& b) {
     swap(a, b);
     swap(x, y);
   }
-  ll bmul = (lcm(x, y) / y);
-  ll amul = (lcm(x, y) / x);
+  ll bmul = x;
+  ll amul = y;
   ll mul = abs(a / amul) + 1;
   a += mul * amul;
   b -= mul * bmul;
+  return a > 0 && b > 0;
 }

@@ -1,0 +1,13 @@
+- If there are multiple sequences of sum of lengths = n, then the number of unique sequence lengths is O(sqrt(N)).
+- Let a, b, c be integers. Then a % (b / gcd(b,c)) == 0 iff c % (b / gcd(a, b)) == 0.
+- If you have a set of points (x, y) and you are given (a, b) to query max(a * x + b * y),
+ then then you can modify it to be y * max(a * x / y + b) iff y is positive,
+ or y * min(a * x / y + b) iff y is negative. Note: tfg's code uses another approach that avoids using doubles.
+- `#pragma GCC optimize("trapv")` kills the progam on overflows, but makes it much slower.
+- `__float128` has double the precision of `double`, but is much slower.
+- Using % operator with `unsigned` types is much faster than using it with `signed` types.
+- `nth_element(begin, nth, end)` is a function that rearranges a sequence in such a way that the nth element
+ is the nth smallest element in the sequence, and all the elements preceding it are <= it, 
+ (and ofc subsequenctly all the elements following it are >= it). It works in O(n).
+
+

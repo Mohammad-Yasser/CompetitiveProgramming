@@ -22,6 +22,32 @@ vector<P> getEdges(Polygon& a) {
   return edges;
 }
 
+// Calculates minkowski sum of two convex polygons.
+// The result is a convex polygon that contains all the points p where p = p1 +
+// p2 for any two points p1 in the first polygon, and p2 in the second one.
+// O(n)
+Polygon minkowskiSum(Polygon a, Polygon b) {
+  vector<P> edges_a = getEdges(a);
+  vector<P> edges_b = getEdges(b);
+  vector<P> merged(sz(edges_a) + sz(edges_b));
+  merge(all(edges_a), all(edges_b), begin(merged), antiClockwiseComparator);
+  Polygon res;
+  res.emplace_back(a[0] + b[0]);
+  for (auto& edge : merged) {
+    res.emplace_back(res.back() + edge);
+  }
+  return res;
+}
+
+// Computes minkowski difference, check minkowskiSum().
+Polygon minkowskiDifference(const Polygon& a, const Polygon& b) {
+  Polygon neg_b = b;
+  for (auto& p : neg_b) {
+    p = p * -1;
+  }
+  return minkowskiSum(a, neg_b);
+}
+
 template <class P>
 bool inPolygon(const vector<P>& p, const P& a) {
   int cnt = 0, n = sz(p);

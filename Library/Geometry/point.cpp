@@ -29,6 +29,8 @@ struct Point {
   T dist2() const { return (*this).dot(*this); }
   Double dist(const P& p) const { return sqrt(dist2(p)); }
   Double dist() const { return sqrt(dist2()); }
+  // Scales the plane by 1/cos(45 degrees)
+  P rotateCCW45WithScale() const { return P(x - y, x + y); }
   P rotateCCW90() const { return P(-y, x); }
   P rotateCCW90Around(const P& p) const {
     return p + p.getVector(*this).rotateCCW90();
@@ -73,7 +75,7 @@ struct Point {
 
   friend istream& operator>>(istream& is, P& p) { return is >> p.x >> p.y; }
 
-  friend ostream& operator<<(ostream& os, P& p) {
+  friend ostream& operator<<(ostream& os, const P& p) {
     return os << p.x << " " << p.y;
   }
 };

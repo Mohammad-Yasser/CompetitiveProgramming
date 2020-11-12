@@ -9,5 +9,8 @@
 - `nth_element(begin, nth, end)` is a function that rearranges a sequence in such a way that the nth element
  is the nth smallest element in the sequence, and all the elements preceding it are <= it, 
  (and ofc subsequenctly all the elements following it are >= it). It works in O(n).
-
-
+- floor(floor(n/u) / v) == floor(n/(uv)) and same if replace floor with ceil.
+- If you want to enumerate bitmasks, and maintain the sum of elements represented by the current bitmask, in O(2^n), then you have two options:
+  - Backtracking: bt(bit_index, current_sum)
+  - Use gray codes. Successive gray codes differ in exacly one bit, so for each step there will be exactly one change.
+- In a random permutation, the expected number of times the prefix max changes is O(log n).

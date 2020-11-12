@@ -1,5 +1,6 @@
 // Assumes no 3 collinear points.
 void sweep(vector<P> points) {
+  if (sz(points) == 1) return;
   sort(all(points), antiClockwiseComparator);
   for (int i = 0; i < sz(points); ++i) {
     int j = (i + 1) % sz(points);
@@ -10,7 +11,7 @@ void sweep(vector<P> points) {
       // or in other words, p[i].cross(p[i+1]) < 0.
     }
   }
-  int l = 0, r = 1 % sz(points);
+  int l = 0, r = 1;
 
   while (points[l].cross(points[r]) > 0) {
     // update

@@ -48,6 +48,29 @@ Polygon minkowskiDifference(const Polygon& a, const Polygon& b) {
   return minkowskiSum(a, neg_b);
 }
 
+// Check if two convex polygons intersect.
+// `a` and `b` must be sorted in any anticlockwise order.
+bool polygonIntersection(const Polygon& a, const Polygon& b) {
+  Polygon mink_diff = minkowskiDifference(a, b);
+  return inPolygon(mink_diff, P(0, 0), false);
+}
+
+// Source:
+// https://github.com/kth-competitive-programming/kactl/blob/master/content/geometry/InsidePolygon.h
+/**
+ * Author: Victor Lecomte, chilli
+ * Date: 2019-04-26
+ * License: CC0
+ * Source: https://vlecomte.github.io/cp-geo.pdf
+ * Description: Returns true if p lies within the polygon. If strict is true,
+ * it returns false for points on the boundary. The algorithm uses
+ * products in intermediate steps so watch out for overflow.
+ * Time: O(n)
+ * Usage:
+ * vector<P> v = {P{4,4}, P{1,2}, P{2,1}};
+ * bool in = inPolygon(v, P{3, 3}, false);
+ * Status: stress-tested and tested on kattis:pointinpolygon
+ */
 template <class P>
 bool inPolygon(const vector<P>& p, const P& a) {
   int cnt = 0, n = sz(p);

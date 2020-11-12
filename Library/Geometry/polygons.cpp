@@ -1,6 +1,27 @@
 
 using Polygon = vector<P>;
 
+// Pre-condition: `a` is a convex polygon whose points are sorted in
+// anticlockwise order.
+// Returns the edges of the polygon sorted in anticlockwise
+// order.
+// Rotates `a` to start from the start point of the smallest edge according to
+// the given anticlockwise order.
+vector<P> getEdges(Polygon& a) {
+  vector<P> edges;
+  int base_a = 0;
+  for (int i = 0; i < sz(a); ++i) {
+    int j = (i + 1) % sz(a);
+    edges.emplace_back(a[j] - a[i]);
+    if (antiClockwiseComparator(edges.back(), edges[base_a])) {
+      base_a = i;
+    }
+  }
+  rotate(begin(edges), begin(edges) + base_a, end(edges));
+  rotate(begin(a), begin(a) + base_a, end(a));
+  return edges;
+}
+
 template <class P>
 bool inPolygon(const vector<P>& p, const P& a) {
   int cnt = 0, n = sz(p);

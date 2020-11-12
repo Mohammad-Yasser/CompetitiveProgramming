@@ -25,7 +25,7 @@ void sweep(vector<P> points) {
   while (l + 1 < sz(points)) {
     ++l;
     // update
-    assert(points[l - 1].cross(points[l]) > 0);
+    // assert(points[l - 1].cross(points[l]) > 0);
     while (points[l].cross(points[r]) > 0) {
       r = (r + 1) % sz(points);
       // update

@@ -13,6 +13,7 @@ struct Point {
 
 // O(n log n)
 // Sort by x before calling.
+// Returns the squared distance between the closest pair of points.
 Long closestPair(int l, int r, vector<Point>& points) {
   if (l == r) return LLONG_MAX;
   int m = (l + r) / 2;

@@ -7,6 +7,7 @@ const Double EPS = 1e-10;
 
 enum Relation { LESS_THAN, EQUAL, GREATER_THAN };
 
+// This is slow, use abs(x-y)<=eps if you want faster but less precise check.
 bool areEqual(Double x, Double y, Double eps = EPS) {
   auto diff = abs(x - y);
   x = abs(x), y = abs(y);

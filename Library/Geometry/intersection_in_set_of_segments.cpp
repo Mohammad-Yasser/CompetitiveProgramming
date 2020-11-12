@@ -1,4 +1,7 @@
 // Check if any 2 segments from a set of given segments intersect.
+
+using Segment = array<Point, 2>;
+
 struct Event {
   int x, type, y, id;
 

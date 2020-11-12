@@ -433,7 +433,7 @@
 			"",
 			"  friend istream& operator>>(istream& is, P& p) { return is >> p.x >> p.y; }",
 			"",
-			"  friend ostream& operator<<(ostream& os, P& p) {",
+			"  friend ostream& operator<<(ostream& os, const P& p) {",
 			"    return os << p.x << \" \" << p.y;",
 			"  }",
 			"};",
@@ -652,6 +652,7 @@
 			"#define sz(x) ((int)(x.size()))",
 			"#define all(v) begin(v), end(v)",
 			"#define rall(v) rbegin(v), rend(v)",
+			"#define rep(i, l, r) for (int i = l; i < r; ++i)",
 			"typedef long long Long;",
 			"typedef double Double;",
 			"",
@@ -669,7 +670,7 @@
 			"}",
 			"",
 			"template <class T>",
-			"ostream& operator<<(ostream& os, vector<T>& v) {",
+			"ostream& operator<<(ostream& os, const vector<T>& v) {",
 			"  for (auto& x : v) {",
 			"    os << x << \" \";",
 			"  }",
@@ -680,6 +681,7 @@
 			"  ios_base::sync_with_stdio(0), cin.tie(0), cout.tie(0);",
 			"#ifdef Local",
 			"  freopen(\"test.in\", \"r\", stdin);",
+			"  freopen(\"test.out\", \"w\", stdout);",
 			"#else",
 			"#define endl '\\n'",
 			"#endif",
@@ -776,11 +778,6 @@
 			"    // return b < a;",
 			"",
 			"    return num * other.den < den * other.num;",
-			"  }",
-			"  friend Fraction abs(const Fraction& x) {",
-			"    Fraction res = x;",
-			"    res.num = abs(res.num), res.den = abs(res.den);",
-			"    return res;",
 			"  }",
 			"",
 			"  friend ostream& operator<<(ostream& os, const Fraction& f) {",
@@ -1191,5 +1188,25 @@
 			"}"
 		],
 		"description": "buildFirstNextSmaller"
+	},
+	"egcd": {
+		"prefix": "/NT/egcd",
+		"body": [
+			"/* Source:",
+			"  https://github.com/kth-competitive-programming/kactl/blob/master/content/number-theory/euclid.h",
+			"",
+			"  Finds two integers x and y, such that ax+by=gcd(a,b).",
+			"  If a and b are coprime, then x is the inverse of a % b.",
+			"*/",
+			"Long egcd(Long a, Long b, Long& x, Long& y) {",
+			"  if (b) {",
+			"    Long d = egcd(b, a % b, y, x);",
+			"    return y -= a / b * x, d;",
+			"  }",
+			"  return x = 1, y = 0, a;",
+			"}",
+			""
+		],
+		"description": "egcd"
 	}
 }

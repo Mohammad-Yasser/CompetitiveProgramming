@@ -26,7 +26,7 @@ void Solve(int curr_i, int k_left, int k_right, int j_left, int j_right) {
   }
 }
 
-//  ==========================================================================
+//  ==========================================  
 void solve(bool curr_row, int curr_l, int curr_r, int prev_l, int prev_r) {
   bool prev_row = !curr_row;
   int mid = (curr_l + curr_r) / 2;

@@ -42,9 +42,8 @@
 		"prefix": "/BIT",
 		"body": [
 			"",
-			"template <class INT, int nLeaves>",
+			"template <class INT, int kMaxSize>",
 			"struct BIT {",
-			"  const int kMaxSize = 1 << (int)ceil(log2(nLeaves + 1e-9));",
 			"  vector<INT> arr;",
 			"  INT size = 0;",
 			"",
@@ -459,7 +458,10 @@
 			"struct chash {  // To use most bits rather than just the lowest ones:",
 			"  const uint64_t C = Long(4e18 * acos(0)) | 71;  // large odd number",
 			"  Long operator()(Long x) const { return __builtin_bswap64((x ^ RANDOM) * C); }",
+			"  int operator()(int x) const { return (*this)(Long(x)); }",
 			"};",
+			"template <typename K, typename V>",
+			"using HashTable = __gnu_pbds: :gp_hash_table<K, V, chash, equal_to<K>, direct_mask_range_hashing<K>, linear_probe_fn<>,hash_standard_resize_policy<hash_exponential_size_policy<>,hash_load_check_resize_trigger<true>, true>>;",
 			"__gnu_pbds::gp_hash_table<Long, int, chash> ht({}, {}, {}, {}, {1 << 16});"
 		],
 		"description": "Hash Table"
@@ -554,13 +556,20 @@
 			"  }",
 			"};",
 			" ",
+			"// Take care of the following case if it can happen.",
+			"// any_update + Update() must be = any_update.",
+			"// Also, Update()(node) must be = node.",
+			"// That's why `lazy` is used with default value false.",
 			"struct Update {",
+			"  bool lazy = false;",
 			"  Update() {}",
 			"  Update operator+(const Update& right) const {",
+			"    if (!lazy) return right;",
 			"    Update res = right;",
 			"    return res;",
 			"  }",
 			"  Node operator()(const Node& node) const {",
+			"    if (!lazy) return node;",
 			"    Node res = node;",
 			"    return res;",
 			"  }",
@@ -612,6 +621,9 @@
 	"64-bit bitset": {
 		"prefix": "/Bitset64",
 		"body": [
+			"// Don't reorder these lines!",
+			"#pragma GCC optimize(\"O3\", \"unroll-loops\")",
+			"#pragma GCC target(\"avx2\")",
 			"#include <string>",
 			"#include <bits/functexcept.h>",
 			"#include <iosfwd>",
@@ -642,7 +654,7 @@
 		"body": [
 			"#ifndef Local",
 			"#pragma GCC optimize(\"Ofast,no-stack-protector\")",
-			"#pragma GCC target(\"sse4,sse4.2,popcnt,abm,mmx,avx\")",
+			"#pragma GCC target(\"popcnt,abm,mmx,avx2\")",
 			"#endif",
 			"#include <bits/stdc++.h>",
 			"",
@@ -653,8 +665,9 @@
 			"#define all(v) begin(v), end(v)",
 			"#define rall(v) rbegin(v), rend(v)",
 			"#define rep(i, l, r) for (int i = l; i < r; ++i)",
-			"typedef long long Long;",
-			"typedef double Double;",
+			"using Long = long long;",
+			"using Double = double;",
+			"using vi = vector<int>;",
 			"",
 			"template <class U, class V>",
 			"istream& operator>>(istream& is, pair<U, V>& p) {",
@@ -950,8 +963,7 @@
 		"body": [
 			"int getMex(const vector<int>& v) {",
 			"  static vector<bool> have;",
-			"  have.clear();",
-			"  have.resize(sz(v) + 1);",
+			"  have.assign(sz(v) + 1, false);",
 			"  for (int x : v) {",
 			"    if (x < sz(v)) {",
 			"      have[x] = true;",
@@ -1031,19 +1043,33 @@
 			"const int N = 5003;",
 			"int vis[N];",
 			"int vis_id;",
-			"",
+			"struct State;",
+			"vector<State> adj[N];",
 			"struct State {",
-			"  int getInd() const {}",
+			"  int getInd() const { return 0; }",
 			"  bool isVisited() const { return vis[getInd()] == vis_id; }",
 			"  void markVisited() const { vis[getInd()] = vis_id; }",
 			"  bool valid(bool check_vis = true) const {",
 			"    return (!check_vis || !isVisited());",
 			"  }",
 			"  bool isGoal() const { return true; }",
-			"  void process(queue<State>& q) {}",
+			"  void process(queue<State>& q) {",
+			"    for (auto& v : adj[getInd()]) {",
+			"      if (v.isVisited()) continue;",
+			"      v.markVisited();",
+			"      q.emplace(v);",
+			"    }",
+			"  }",
 			"};",
 			"",
-			"queue<State> q;",
+			"void addEdge(const State& u, const State& v) {",
+			"  adj[u.getInd()].emplace_back(v);",
+			"}",
+			"",
+			"void addBiEdge(const State& u, const State& v) {",
+			"  addEdge(u, v);",
+			"  addEdge(v, u);",
+			"}",
 			"",
 			"template <class T>",
 			"void clear(queue<T>& q) {",
@@ -1051,6 +1077,7 @@
 			"}",
 			"",
 			"int bfs(const State& start) {",
+			"  static queue<State> q;",
 			"  ++vis_id;",
 			"  clear(q);",
 			"  q.emplace(start);",
@@ -1069,7 +1096,7 @@
 			"  return -1;",
 			"}"
 		],
-		"description": "BFS",
+		"description": "BFS"
 	},
 	"Max Prefix in Prefix": {
 		"prefix": "/strings/maxprefixinprefix",
@@ -1208,5 +1235,47 @@
 			""
 		],
 		"description": "egcd"
+	},
+	"Random Generator": {
+		"prefix": "/rng",
+		"body": [
+			"const int RANDOM =",
+			"    chrono::high_resolution_clock::now().time_since_epoch().count();",
+			"mt19937 rng(RANDOM);",
+			"int rnd(int a, int b) { return rng() % unsigned(b - a + 1) + a; }"
+		],
+		"description": "Random Generator"
+	},
+	"Longest Increasing Subsequence": {
+		"prefix": "/LIS",
+		"body": [
+			" int lis(const vector<int>& v) {",
+			"        vector<int> res;",
+			"        for (int x : v) {",
+			"            auto it = upper_bound(res.begin(), res.end(),x); // lower_bound for strictly increasing.",
+			"            if (it == v.end()) {",
+			"                res.emplace_back(x);",
+			"            } else {",
+			"                *it = x;",
+			"            }",
+			"        }",
+			"        return res.size();",
+			"    }"
+		],
+		"description": "Longest Increasing Subsequence"
+	},
+	"Build Occurrences": {
+		"prefix": "/strings/buildOcc",
+		"body": [
+			"vector<vi> buildOcc(const string& s) {",
+			"  static const int A = 'z' - 'a' + 1;",
+			"  vector<vi> res(A);",
+			"  for (int i = 0; i < sz(s); ++i) {",
+			"    res[s[i] - 'a'].emplace_back(i);",
+			"  }",
+			"  return res;",
+			"}"
+		],
+		"description": "Build Occurrences"
 	}
 }

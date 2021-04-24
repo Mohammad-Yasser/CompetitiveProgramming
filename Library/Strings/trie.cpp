@@ -31,4 +31,24 @@ struct Trie {
     nodes[curr].cnt = val;
   }
 
+  int query(int x) {
+    // Finds max x^y where y is in the trie.
+    int curr = root_id;
+    for (int i = B; i >= 0; --i) {
+      if ((x >> i) & 1) {
+        if (nodes[curr].children[0] != Node::DummyNode) {
+          curr = nodes[curr].children[0];
+        } else {
+          curr = nodes[curr].children[1];
+        }
+      } else {
+        if (nodes[curr].children[1] != Node::DummyNode) {
+          curr = nodes[curr].children[1];
+        } else {
+          curr = nodes[curr].children[0];
+        }
+      }
+    }
+  }
+
 } tries[2];

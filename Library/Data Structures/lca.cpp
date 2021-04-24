@@ -1,3 +1,5 @@
+int root = 1;
+int n;
 struct LCAFinder {
   int lvl[N], anc[N][Lg];
 
@@ -19,17 +21,29 @@ struct LCAFinder {
     }
   }
 
-  int LCA(int i, int j) { // returns node ID (LCA for i, j)
+  int getLevelKAncestor(int i, int k) {
+    int st = Lg - 1;
+    int cur = lvl[i];
+    for (; st >= 0; st--)
+      if (cur - (1 << st) >= k) cur -= (1 << st), i = anc[i][st];
+    return i;
+  }
+
+  int LCA(int i, int j,
+          int& L) {  // returns node ID (LCA for i, j). L is the LCA level.
     int st = Lg - 1;
     if (lvl[i] > lvl[j]) swap(i, j);
     int cur = lvl[j];
     for (; st >= 0; st--)
       if (cur - (1 << st) >= lvl[i]) cur -= (1 << st), j = anc[j][st];
+    L = lvl[i];
     if (i == j) return i;
     cur = lvl[i];
     for (st = Lg - 1; st >= 0; st--)
-      if (anc[i][st] != anc[j][st]) cur -= (1 << st), i = anc[i][st], j =
-        anc[j][st];
+      if (anc[i][st] != anc[j][st])
+        cur -= (1 << st), i = anc[i][st], j = anc[j][st];
+    L = lvl[i] - 1;
     return anc[i][0];
   }
+
 } lca_finder;

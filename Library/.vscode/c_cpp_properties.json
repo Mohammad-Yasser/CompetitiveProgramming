@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "Local"
+            ],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c11",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "gcc-x64",
+            "compilerArgs": [
+                "-DLocal"
+                // "-Wshadow"
+                // "-Wall"
+                // "-Wno-unused-result"
+            ]
+        }
+    ],
+    "version": 4
+}

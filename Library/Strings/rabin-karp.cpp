@@ -8,8 +8,6 @@ int base_power[N];
 int arrForward[N];
 int arrBackward[N];
 
-bitset<MOD> vis;
-
 string s;
 
 void init() {

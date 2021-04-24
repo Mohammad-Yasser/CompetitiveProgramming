@@ -82,3 +82,9 @@ bool noIntersection(const vector<Segment>& segments) {
 
   return true;
 }
+
+// ===================================================================================
+// Find all intersections in O((n+k)log n) where k is the number of intersection
+// points.
+// https://codeforces.com/contest/1359/submission/105547929
+// http://geomalgorithms.com/a09-_intersect-3.html

@@ -91,15 +91,20 @@ struct Node {
   }
 };
 
-// The default value must not change an update when merged.
-// I.e. any_update + Update() must be = any_update.
+// Take care of the following case if it can happen.
+// any_update + Update() must be = any_update.
+// Also, Update()(node) must be = node.
+// That's why `lazy` is used with default value false.
 struct Update {
+  bool lazy = false;
   Update() {}
   Update operator+(const Update& right) const {
+    if (!lazy) return right;
     Update res = right;
     return res;
   }
   Node operator()(const Node& node) const {
+    if (!lazy) return node;
     Node res = node;
     return res;
   }
@@ -298,4 +303,3 @@ struct SegmentTree {
   Long query() { return nodes[1].min_cost + nodes[1].lazy; }
 
 } seg_tree;
-// ====================================================================

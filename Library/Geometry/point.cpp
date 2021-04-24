@@ -105,8 +105,8 @@ bool areCollinear(const Point& a, const Point& b, const Point& c) {
 }
 
 // Returns 1 if CW, 0 if collinear, -1 if ACW.
-int getDirection(const Point& a, const Point& b, const Point& c) {
-  auto value = cross(c - a, b - a);
+int getDirection(const P& a, const P& b, const P& c) {
+  auto value = (c - a).cross(b - a);
   if (isZero(value)) return 0;
   return 2 * (value > 0) - 1;
 }
